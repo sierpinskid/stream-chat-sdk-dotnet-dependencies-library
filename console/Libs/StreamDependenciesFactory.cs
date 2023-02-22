@@ -1,5 +1,6 @@
 ﻿using StreamChat.Libs.AppInfo;
 using StreamChat.Libs.Auth;
+using StreamChat.Libs.ChatInstanceRunner;
 using StreamChat.Libs.Http;
 using StreamChat.Libs.Logs;
 using StreamChat.Libs.Serialization;
@@ -14,28 +15,12 @@ namespace StreamChat.Libs
     /// </summary>
     public static class StreamDependenciesFactory
     {
-        public static ILogs CreateLogger(ConsoleLogs.LogLevel logLevel = ConsoleLogs.LogLevel.All)
+        public static ILogs CreateLogger(LogLevel logLevel = LogLevel.All)
             => new ConsoleLogs(logLevel);
 
-        public static IWebsocketClient CreateWebsocketClient(ILogs logs, bool isDebugMode = false)
-        {
+        public static IWebsocketClient CreateWebsocketClient(ILogs logs, bool isDebugMode = false) => new WebsocketClient(logs, isDebugMode: isDebugMode);
 
-#if UNITY_WEBGL
-            //StreamTodo: handle debug mode
-            return new NativeWebSocketWrapper(logs, isDebugMode: isDebugMode);
-#else
-            return new WebsocketClient(logs, isDebugMode: isDebugMode);
-#endif
-        }
-
-        public static IHttpClient CreateHttpClient()
-        {
-#if UNITY_WEBGL
-            return new UnityWebRequestHttpClient();
-#else
-            return new HttpClientAdapter();
-#endif
-        }
+        public static IHttpClient CreateHttpClient() => new HttpClientAdapter();
 
         public static ISerializer CreateSerializer() => new NewtonsoftJsonSerializer();
 
@@ -44,5 +29,7 @@ namespace StreamChat.Libs
         public static IApplicationInfo CreateApplicationInfo() => new ConsoleApplicationInfo();
         
         public static ITokenProvider CreateTokenProvider(TokenProvider.TokenUriHandler urlFactory) => new TokenProvider(CreateHttpClient(), urlFactory);
+
+        public static IStreamChatClientRunner CreateChatClientRunner() => null;
     }
 }
